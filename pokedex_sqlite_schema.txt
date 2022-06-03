@@ -1,0 +1,54 @@
+CREATE TABLE pokemon(
+	name TEXT NOT NULL PRIMARY KEY,
+	number INTEGER NOT NULL,
+	url TEXT NOT NULL
+);
+
+CREATE TABLE formes(
+	pokemon TEXT NOT NULL,
+	form TEXT NOT NULL,
+	image_url TEXT NOT NULL,
+	height TEXT NOT NULL,
+	weight TEXT NOT NULL,
+	category TEXT NOT NULL,
+	type_1 TEXT NOT NULL,
+	type_2 TEXT,
+	male INTEGER NOT NULL,
+	female INTEGER NOT NULL,
+	PRIMARY KEY(pokemon, form),
+	FOREIGN KEY(pokemon) REFERENCES pokemon(name)
+);
+
+CREATE TABLE form_descriptions(
+	pokemon TEXT NOT NULL,
+	form TEXT NOT NULL,
+	description TEXT NOT NULL,
+	PRIMARY KEY(pokemon, form, description),
+	FOREIGN KEY(pokemon) REFERENCES pokemon(name),
+	FOREIGN KEY(form) REFERENCES formes(form)
+);
+
+CREATE TABLE abilities(
+	ability TEXT NOT NULL PRIMARY KEY,
+	info TEXT NOT NULL
+);
+
+CREATE TABLE form_abilities(
+	pokemon TEXT NOT NULL,
+	form TEXT NOT NULL,
+	ability TEXT NOT NULL,
+	PRIMARY KEY(pokemon, form, ability),
+	FOREIGN KEY(pokemon) REFERENCES pokemon(name),
+	FOREIGN KEY(form) REFERENCES formes(form),
+	FOREIGN KEY(ability) REFERENCES abilities(ability)
+);
+
+CREATE TABLE evolutions(
+	pokemon TEXT NOT NULL,
+	evolves_to TEXT NOT NULL,
+	PRIMARY KEY(pokemon, evolves_to),
+	FOREIGN KEY(pokemon) REFERENCES pokemon(name),
+	FOREIGN KEY(evolves_to) REFERENCES pokemon(name)
+);
+
+maybe get rif of urls
