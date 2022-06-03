@@ -1,13 +1,11 @@
 CREATE TABLE pokemon(
 	name TEXT NOT NULL PRIMARY KEY,
-	number INTEGER NOT NULL,
-	url TEXT NOT NULL
+	number INTEGER NOT NULL
 );
 
 CREATE TABLE formes(
 	pokemon TEXT NOT NULL,
 	form TEXT NOT NULL,
-	image_url TEXT NOT NULL,
 	height TEXT NOT NULL,
 	weight TEXT NOT NULL,
 	category TEXT NOT NULL,
@@ -50,5 +48,3 @@ CREATE TABLE evolutions(
 	FOREIGN KEY(pokemon) REFERENCES pokemon(name),
 	FOREIGN KEY(evolves_to) REFERENCES pokemon(name)
 );
-
-maybe get rif of urls
