@@ -22,8 +22,7 @@ CREATE TABLE form_descriptions(
 	form TEXT NOT NULL,
 	description TEXT NOT NULL,
 	PRIMARY KEY(pokemon, form, description),
-	FOREIGN KEY(pokemon) REFERENCES pokemon(name),
-	FOREIGN KEY(form) REFERENCES formes(form)
+	FOREIGN KEY(pokemon, form) REFERENCES formes(pokemon, form)
 );
 
 CREATE TABLE abilities(
@@ -36,8 +35,7 @@ CREATE TABLE form_abilities(
 	form TEXT NOT NULL,
 	ability TEXT NOT NULL,
 	PRIMARY KEY(pokemon, form, ability),
-	FOREIGN KEY(pokemon) REFERENCES pokemon(name),
-	FOREIGN KEY(form) REFERENCES formes(form),
+	FOREIGN KEY(pokemon, form) REFERENCES formes(pokemon, form),
 	FOREIGN KEY(ability) REFERENCES abilities(ability)
 );
 
