@@ -67,7 +67,7 @@ def create_sqlite_db(db_name):
 def insert_pokemon_table(cur, pkmn):
     values = (pkmn['name'], pkmn['number'])
     print(values)
-    cur.execute("INSERT INTO pokemon VALUES (?, ?)", values)
+    cur.execute("INSERT INTO pokemon VALUES (?, ?);", values)
 
 def insert_formes_table(cur, pkmn):
     for form in pkmn['formes']:
@@ -77,10 +77,65 @@ def insert_formes_table(cur, pkmn):
         female = 1 if 'Female' in form['gender'] else 0
         values = (pkmn['name'], form['form'], form['height'], form['weight'],
                 form['category'], type1, type2, male, female)
-        cur.execute("INSERT INTO formes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", values)
+        cur.execute("INSERT INTO formes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", values)
 
 def insert_form_descriptions_table(cur, pkmn):
-    pass
+    for form in pkmn['formes']:
+        desc1 = form['descriptions'][0]
+        values = [(pkmn['name'], form['form'], desc1)]
+        # Each form has 2 descriptions.
+        # But they might be the same and break the database's unique constraint.
+        desc2 = form['descriptions'][1]
+        if desc1 != desc2:
+            values.append((pkmn['name'], form['form'], desc2))
+        cur.executemany("INSERT INTO form_descriptions VALUES (?, ?, ?);", values)
+        
+def insert_abilities_table(cur, ability):
+    name = ability['ability']
+    info = ability['description']
+    cur.execute("INSERT INTO abilities VALUES(?, ?);", (name, info))
+
+def insert_form_abilities_table(cur, pkmn):
+    values = []
+    for form in pkmn['formes']:
+        if 'abilities' in form.keys(): # One pokemon doesn't have abilities.
+            for ability in form['abilities']:
+                values.append((pkmn['name'], form['form'], ability))
+    cur.executemany("INSERT INTO form_abilities VALUES (?, ?, ?);", values)
+
+def insert_evolutions_table(cur, pkmn):
+    # Check if this pokemon's evolution line is already in the database.
+    cur.execute("SELECT * FROM evolutions WHERE pokemon=? OR evolves_to=?;",
+                (pkmn['name'], pkmn['name']))
+    if len(cur.fetchall()) == 0:
+        # Add the pokemon's evolutions to the database.
+        values = []
+        evos_list = pkmn['evolutions']
+        # Combine the dictionaries in evos_list into one dictionary.
+        evos = {}
+        for dic in evos_list:
+            evos.update(dic)
+        # I think first, middle, and last are the only possible evolution spots.
+        # But I'm going to make sure with an assertion.
+        for key in evos.keys():
+            assert(key in ['first', 'middle', 'last'])
+        # If there are "middle" pokemon, then "first" evolves into "middle",
+        # and "middle" evolves into "last".
+        if 'middle' in evos.keys():
+            for mid_evo in evos['middle']:
+                for first_evo in evos['first']:
+                    values.append((first_evo, mid_evo))
+            for last_evo in evos['last']:
+                for mid_evo in evos['middle']:
+                    values.append((mid_evo, last_evo))
+        # If there are "last" pokemon but no "middle",
+        # then "first" evolves into "last".
+        elif 'last' in evos.keys():
+            for last_evo in evos['last']:
+                for first_evo in evos['first']:
+                    values.append((first_evo, last_evo))
+        cur.executemany("INSERT INTO evolutions VALUES (?, ?);", values)
+
 
 
 def fill_sqlite_db(db_name):
@@ -88,20 +143,25 @@ def fill_sqlite_db(db_name):
     client = MongoClient()
     db = client.pokedex
     pkmn_coll = db.pokemon
+    ability_coll = db.abilities
 
     con = sqlite3.connect(db_name)
     cur = con.cursor()
+    for ability in ability_coll.find():
+        insert_abilities_table(cur, ability)
     for pkmn in pkmn_coll.find():
-        #insert_pokemon_table(cur, pkmn)
-        #insert_formes_table(cur, pkmn)
+        insert_pokemon_table(cur, pkmn)
+        insert_formes_table(cur, pkmn)
         insert_form_descriptions_table(cur, pkmn)
+        insert_form_abilities_table(cur, pkmn)
+        insert_evolutions_table(cur, pkmn)
 
-        if pkmn['name'] == 'Charizard':
-            break
+        '''if pkmn['name'] == 'Eevee':
+            break'''
     con.commit()
     con.close()
 
-#create_sqlite_db('testing.db')
+create_sqlite_db('testing.db')
 fill_sqlite_db('testing.db')
 
 
