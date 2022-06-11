@@ -285,6 +285,7 @@ class PokedexScraper:
             of the pokemon in that spot.
         """
         evolutions_tag = self._soup.find(class_="evolution-profile")
+        # Use a list instead of dictionary to preserve order.
         evolutions = []
         if evolutions_tag:
             for evo_line_spot in evolutions_tag.contents[1::2]:
